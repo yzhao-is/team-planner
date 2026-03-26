@@ -649,6 +649,17 @@ function importData(e) {
 }
 
 async function init() {
+  // Auto-configure from URL params: ?gist=xxx&token=yyy
+  const params = new URLSearchParams(location.search);
+  const urlGist = params.get("gist");
+  const urlToken = params.get("token");
+  if (urlGist && urlToken) {
+    gistConfig = { gistId: urlGist, token: urlToken };
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(gistConfig));
+    // Clean URL so token isn't visible in browser bar after load
+    history.replaceState({}, "", location.pathname);
+  }
+
   renderHint();
   if (gistConfig) { updateSyncStatus("syncing"); await loadFromGist(); }
   render();

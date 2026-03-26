@@ -270,8 +270,21 @@ async function loadFromGist() {
     const data = await res.json();
     const file = data.files[GIST_FILENAME];
     if (!file) return false;
-    const remote = JSON.parse(file.content);
-    if (remote?.projects) { state = remote; saveLocal(); updateSyncStatus("ok"); return true; }
+    // If content is truncated, fetch from raw_url instead
+    let content = file.content;
+    if (file.truncated && file.raw_url) {
+      const rawRes = await fetch(file.raw_url + `?_=${Date.now()}`, {
+        headers: { "Authorization": `Bearer ${gistConfig.token}` }
+      });
+      content = await rawRes.text();
+    }
+    const remote = JSON.parse(content);
+    if (remote?.projects) {
+      state = remote;
+      saveLocal();
+      updateSyncStatus("ok");
+      return true;
+    }
   } catch(e) { updateSyncStatus("err"); console.error("Load from Gist failed:", e); }
   return false;
 }
@@ -282,9 +295,9 @@ async function pullNow() {
   if (!gistConfig) { showMsg("sync-msg", "❌ Gist not configured", "err"); return; }
   const btn = document.getElementById("btn-pull-now");
   if (btn) btn.disabled = true;
-  updateSyncStatus("syncing");
   const loaded = await loadFromGist();
-  if (loaded) { render(); showMsg("sync-msg", "✅ Up to date!", "ok"); }
+  render();
+  if (loaded) showMsg("sync-msg", "✅ Up to date!", "ok");
   else showMsg("sync-msg", "❌ Pull failed", "err");
   if (btn) btn.disabled = false;
 }

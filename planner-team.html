@@ -263,9 +263,8 @@ async function loadFromGist() {
   if (!gistConfig?.gistId || !gistConfig?.token) return false;
   updateSyncStatus("syncing");
   try {
-    const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
-      headers: { "Authorization": `Bearer ${gistConfig.token}`, "X-GitHub-Api-Version": "2022-11-28", "Cache-Control": "no-store" },
-      cache: "no-store"
+    const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}?_=${Date.now()}`, {
+      headers: { "Authorization": `Bearer ${gistConfig.token}`, "X-GitHub-Api-Version": "2022-11-28" }
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     const data = await res.json();

@@ -138,7 +138,8 @@
   <div id="overview-tab" style="display:none"></div>
 
   <div class="sync-bar">
-    <button class="sync-btn" id="btn-sync-now" onclick="syncNow()">☁️ Sync Now</button>
+    <button class="sync-btn" id="btn-sync-now" onclick="syncNow()">☁️ Push</button>
+    <button class="sync-btn" id="btn-pull-now" onclick="pullNow()">⬇️ Pull Latest</button>
     <button class="sync-btn" onclick="toggleSetup()">⚙️ Gist Settings</button>
     <button class="sync-btn" onclick="exportData()">💾 Local Backup</button>
     <span class="sync-msg" id="sync-msg"></span>
@@ -276,6 +277,17 @@ async function loadFromGist() {
 }
 
 async function syncNow() { clearTimeout(syncTimer); await syncToGist(true); }
+
+async function pullNow() {
+  if (!gistConfig) { showMsg("sync-msg", "❌ Gist not configured", "err"); return; }
+  const btn = document.getElementById("btn-pull-now");
+  if (btn) btn.disabled = true;
+  updateSyncStatus("syncing");
+  const loaded = await loadFromGist();
+  if (loaded) { render(); showMsg("sync-msg", "✅ Pulled latest from Gist!", "ok"); }
+  else showMsg("sync-msg", "❌ Pull failed", "err");
+  if (btn) btn.disabled = false;
+}
 
 function toggleSetup() {
   const p = document.getElementById("setup-panel");
@@ -656,14 +668,19 @@ async function init() {
   if (urlGist && urlToken) {
     gistConfig = { gistId: urlGist, token: urlToken };
     localStorage.setItem(CONFIG_KEY, JSON.stringify(gistConfig));
-    // Clean URL so token isn't visible in browser bar after load
     history.replaceState({}, "", location.pathname);
   }
 
   renderHint();
-  if (gistConfig) { updateSyncStatus("syncing"); await loadFromGist(); }
+  // Always render local state immediately so page isn't blank
   render();
-  if (gistConfig) updateSyncStatus("ok");
+  // Then fetch from Gist and re-render with latest data
+  if (gistConfig) {
+    updateSyncStatus("syncing");
+    const loaded = await loadFromGist();
+    if (loaded) render();
+    updateSyncStatus("ok");
+  }
 }
 
 init();

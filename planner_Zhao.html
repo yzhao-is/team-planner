@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Planner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f6fa; color: #333; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 22px; margin-bottom: 2px; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 16px; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+  .tab { padding: 10px 20px; border: none; background: none; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab.active { font-weight: 700; color: #1a73e8; border-bottom-color: #1a73e8; }
+
+  /* Project pills */
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pill { padding: 6px 14px; border-radius: 20px; border: 2px solid; font-weight: 600; font-size: 13px; cursor: pointer; background: #fff; }
+  .pill.active { color: #fff !important; }
+  .pill-add { padding: 6px 14px; border-radius: 20px; border: 2px dashed #ccc; background: #fff; color: #999; cursor: pointer; font-size: 13px; }
+
+  /* Project name input */
+  .proj-name { font-size: 18px; font-weight: 700; border: none; border-bottom: 2px solid; outline: none; width: 100%; padding: 4px 0; background: transparent; }
+
+  /* Progress */
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin-bottom: 16px; }
+  .progress-fill { height: 6px; border-radius: 3px; transition: width 0.3s; }
+
+  /* Task rows */
+  .task-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; border-left: 3px solid; margin-bottom: 6px; }
+  .task-row.done { background: #f8f9fa; }
+  .task-cb { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+  .task-text { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; }
+  .task-text.done { text-decoration: line-through; color: #999; }
+  .task-date { border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px 6px; font-size: 12px; color: #666; }
+  .task-del { border: none; background: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0 4px; }
+  .task-del:hover { color: #e53935; }
+  .add-task { margin-top: 10px; padding: 8px 16px; border: 2px dashed #ddd; border-radius: 6px; background: #fafafa; color: #888; cursor: pointer; font-size: 13px; width: 100%; }
+
+  /* Timeline */
+  .summary-cards { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .s-card { flex: 1 1 120px; border-radius: 8px; padding: 12px 16px; text-align: center; }
+  .s-card-val { font-size: 24px; font-weight: 700; }
+  .s-card-label { font-size: 11px; color: #666; }
+  .month-header { font-size: 14px; font-weight: 700; padding: 8px 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 8px; }
+  .tl-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 4px; border: 1px solid #e8e8e8; border-radius: 6px; border-left: 3px solid; }
+  .tl-date { width: 70px; font-size: 12px; color: #555; font-weight: 500; flex-shrink: 0; }
+  .tl-task { font-size: 14px; }
+  .tl-proj { font-size: 11px; color: #888; }
+  .tl-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+  /* Overview */
+  .ov-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; border-left: 4px solid; margin-bottom: 12px; background: #fff; }
+  .ov-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .ov-title { font-size: 16px; font-weight: 600; }
+  .ov-pct { font-size: 20px; font-weight: 700; }
+  .ov-bar { height: 8px; background: #e0e0e0; border-radius: 4px; margin-bottom: 10px; }
+  .ov-fill { height: 8px; border-radius: 4px; transition: width 0.3s; }
+  .ov-info { font-size: 12px; color: #666; }
+
+  /* Sync bar */
+  .sync-bar { display: flex; gap: 8px; margin-top: 24px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+  .sync-btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .sync-btn:hover { background: #f5f5f5; }
+  .sync-btn:disabled { opacity: 0.5; cursor: default; }
+  .sync-msg { font-size: 12px; opacity: 0; transition: opacity 0.3s; }
+  .sync-msg.show { opacity: 1; }
+  .sync-msg.ok { color: #1E8E3E; }
+  .sync-msg.err { color: #D93025; }
+  .sync-status { font-size: 11px; color: #999; margin-left: auto; }
+
+  /* Setup panel */
+  .setup-panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+  .setup-panel h3 { font-size: 14px; margin-bottom: 12px; color: #333; }
+  .setup-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .setup-label { font-size: 12px; color: #666; width: 80px; flex-shrink: 0; }
+  .setup-input { flex: 1; min-width: 200px; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: monospace; outline: none; }
+  .setup-input:focus { border-color: #1a73e8; }
+  .setup-save { padding: 6px 16px; background: #1a73e8; color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+  .setup-save:hover { background: #1557b0; }
+  .setup-hint { font-size: 11px; color: #999; margin-top: 4px; }
+  .setup-toggle { font-size: 12px; color: #1a73e8; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
+
+  .hint { margin-top: 12px; padding: 12px; background: #E6F4EA; border-radius: 6px; font-size: 12px; color: #2E7D32; }
+  .hint-warn { margin-top: 12px; padding: 12px; background: #FEF7E0; border-radius: 6px; font-size: 12px; color: #7a5800; }
+  .del-proj { margin-top: 12px; padding: 6px 14px; border: 1px solid #e0e0e0; border-radius: 6px; background: #fff; color: #999; cursor: pointer; font-size: 12px; }
+  .del-proj:hover { color: #D93025; border-color: #D93025; }
+  .archive-btn { margin-top: 12px; margin-left: 8px; padding: 6px 14px; border: 1px solid #e0e0e0; border-radius: 6px; background: #fff; color: #888; cursor: pointer; font-size: 12px; }
+  .archive-btn:hover { color: #E37400; border-color: #E37400; background: #FEF7E0; }
+  .archived-section { margin-top: 28px; border-top: 2px dashed #e0e0e0; padding-top: 16px; }
+  .archived-section-header { font-size: 13px; font-weight: 600; color: #999; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .archived-section-header:hover { color: #666; }
+  .archived-pill { padding: 5px 12px; border-radius: 20px; border: 2px dashed; font-size: 13px; color: #aaa; background: #f8f8f8; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .archived-pill:hover { background: #f0f0f0; }
+  .unarchive-btn { font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; padding: 0; }
+  .unarchive-btn:hover { color: #1a73e8; }
+  .archived-ov-card { border: 1px dashed #ddd; border-radius: 8px; padding: 12px 16px; border-left: 4px solid; margin-bottom: 10px; background: #f9f9f9; opacity: 0.7; display: flex; justify-content: space-between; align-items: center; }
+  .archived-ov-title { font-size: 15px; font-weight: 500; color: #888; }
+  .task-hours { width: 50px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px 6px; font-size: 12px; color: #666; text-align: right; }
+  .task-hours::placeholder { color: #ccc; }
+  .hours-summary { font-size: 12px; color: #666; margin-bottom: 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .hours-tag { background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
+  .notes-label { font-size: 13px; font-weight: 600; color: #555; margin-top: 20px; margin-bottom: 6px; }
+  .notes-area { width: 100%; min-height: 80px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; outline: none; background: #fff; color: #333; line-height: 1.5; }
+  .notes-area:focus { border-color: #aaa; }
+  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #ddd; border-top-color: #1a73e8; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📋 Project Planner</h1>
+  <p class="subtitle">Track deadlines, tasks & progress</p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="checklist">✅ Checklists</button>
+    <button class="tab" data-tab="timeline">📅 Timeline</button>
+    <button class="tab" data-tab="overview">📊 Overview</button>
+  </div>
+
+  <div id="checklist-tab"></div>
+  <div id="timeline-tab" style="display:none"></div>
+  <div id="overview-tab" style="display:none"></div>
+
+  <div class="sync-bar">
+    <button class="sync-btn" id="btn-sync-now" onclick="syncNow()">☁️ Sync Now</button>
+    <button class="sync-btn" onclick="toggleSetup()">⚙️ Gist Settings</button>
+    <button class="sync-btn" onclick="exportData()">💾 Local Backup</button>
+    <button class="sync-btn" onclick="document.getElementById('import-file').click()">📂 Load Backup</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    <span class="sync-msg" id="sync-msg"></span>
+    <span class="sync-status" id="sync-status"></span>
+  </div>
+
+  <div id="setup-panel" class="setup-panel" style="display:none">
+    <h3>☁️ GitHub Gist Sync Setup</h3>
+    <div class="setup-row">
+      <span class="setup-label">Gist ID</span>
+      <input class="setup-input" id="inp-gist-id" placeholder="e.g. 5bdfb0795255dc95c5cf8ff392a83a78" />
+    </div>
+    <div class="setup-row">
+      <span class="setup-label">Token</span>
+      <input class="setup-input" id="inp-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+    </div>
+    <div class="setup-hint" style="margin-bottom:10px">Token needs <strong>gist</strong> scope only. Stored in this browser only, never sent anywhere except GitHub's API.</div>
+    <div class="setup-row">
+      <button class="setup-save" onclick="saveGistConfig()">Save & Test Connection</button>
+      <span class="sync-msg" id="setup-msg" style="margin-left:8px"></span>
+    </div>
+  </div>
+
+  <div id="main-hint"></div>
+</div>
+
+<script>
+const COLORS = ["#4285F4","#EA4335","#34A853","#FBBC04","#FF6D01","#46BDC6","#9334E6","#E91E63"];
+const TODAY = new Date().toISOString().slice(0, 10);
+const STORAGE_KEY = "planner_data";
+const CONFIG_KEY = "planner_gist_config";
+
+let state = loadLocalState();
+let gistConfig = loadGistConfig(); // { gistId, token }
+let syncPending = false;
+let syncTimer = null;
+let lastSyncedAt = localStorage.getItem("planner_last_synced") || null;
+
+function defaultState() {
+  return {
+    projects: [
+      { id: 1, name: "Project 1", color: COLORS[0], tasks: [
+        { text: "Task 1", done: false, deadline: "" },
+        { text: "Task 2", done: false, deadline: "" },
+      ]},
+      { id: 2, name: "Project 2", color: COLORS[1], tasks: [
+        { text: "Task 1", done: false, deadline: "" },
+      ]},
+    ],
+    activeTab: "checklist",
+    selectedProject: 0,
+    archived: [],
+    archivedCollapsed: true
+  };
+}
+
+function loadLocalState() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if (d) return JSON.parse(d);
+  } catch(e) {}
+  return defaultState();
+}
+
+function loadGistConfig() {
+  try {
+    const d = localStorage.getItem(CONFIG_KEY);
+    if (d) return JSON.parse(d);
+  } catch(e) {}
+  return null;
+}
+
+function saveLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// Debounced auto-sync: waits 2s after last change, then syncs
+function save() {
+  saveLocal();
+  if (gistConfig) {
+    clearTimeout(syncTimer);
+    syncPending = true;
+    updateSyncStatus("pending");
+    syncTimer = setTimeout(() => syncToGist(false), 2000);
+  }
+}
+
+function updateSyncStatus(status) {
+  const el = document.getElementById("sync-status");
+  if (!el) return;
+  if (!gistConfig) { el.textContent = ""; return; }
+  if (status === "pending") el.textContent = "⏳ Unsaved changes...";
+  else if (status === "syncing") el.textContent = "🔄 Syncing...";
+  else if (status === "ok") {
+    const t = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    el.textContent = `☁️ Synced at ${t}`;
+  }
+  else if (status === "err") el.textContent = "⚠️ Sync failed";
+}
+
+async function syncToGist(showFeedback = true) {
+  if (!gistConfig || !gistConfig.gistId || !gistConfig.token) {
+    if (showFeedback) showMsg("sync-msg", "❌ Gist not configured", "err");
+    return false;
+  }
+  updateSyncStatus("syncing");
+  const btn = document.getElementById("btn-sync-now");
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${gistConfig.token}`,
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2022-11-28"
+      },
+      body: JSON.stringify({
+        files: {
+          "planner-data.json": {
+            content: JSON.stringify(state, null, 2)
+          }
+        }
+      })
+    });
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+    syncPending = false;
+    lastSyncedAt = new Date().toISOString();
+    localStorage.setItem("planner_last_synced", lastSyncedAt);
+    updateSyncStatus("ok");
+    if (showFeedback) showMsg("sync-msg", "✅ Synced to Gist!", "ok");
+    return true;
+  } catch(e) {
+    updateSyncStatus("err");
+    if (showFeedback) showMsg("sync-msg", "❌ Sync failed: " + e.message, "err");
+    return false;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function loadFromGist() {
+  if (!gistConfig || !gistConfig.gistId || !gistConfig.token) return false;
+  updateSyncStatus("syncing");
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
+      headers: {
+        "Authorization": `Bearer ${gistConfig.token}`,
+        "X-GitHub-Api-Version": "2022-11-28"
+      }
+    });
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+    const data = await res.json();
+    const file = data.files["planner-data.json"];
+    if (!file) return false; // no data yet, that's fine
+    const remote = JSON.parse(file.content);
+    if (remote && remote.projects) {
+      state = remote;
+      saveLocal();
+      updateSyncStatus("ok");
+      return true;
+    }
+  } catch(e) {
+    updateSyncStatus("err");
+    console.error("Load from Gist failed:", e);
+  }
+  return false;
+}
+
+async function syncNow() {
+  clearTimeout(syncTimer);
+  await syncToGist(true);
+}
+
+function toggleSetup() {
+  const p = document.getElementById("setup-panel");
+  const show = p.style.display === "none";
+  p.style.display = show ? "block" : "none";
+  if (show && gistConfig) {
+    document.getElementById("inp-gist-id").value = gistConfig.gistId || "";
+    document.getElementById("inp-token").value = gistConfig.token || "";
+  }
+}
+
+async function saveGistConfig() {
+  const gistId = document.getElementById("inp-gist-id").value.trim();
+  const token = document.getElementById("inp-token").value.trim();
+  if (!gistId || !token) { showMsg("setup-msg", "❌ Both fields required", "err"); return; }
+
+  showMsg("setup-msg", "Testing...", "ok");
+
+  // Test by reading the gist
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { "Authorization": `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28" }
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    gistConfig = { gistId, token };
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(gistConfig));
+    showMsg("setup-msg", "✅ Connected! Loading cloud data...", "ok");
+
+    // Load remote data (if any), then render
+    const loaded = await loadFromGist();
+    if (loaded) {
+      showMsg("setup-msg", "✅ Connected & data loaded from Gist!", "ok");
+    } else {
+      // First time: push local data up
+      await syncToGist(false);
+      showMsg("setup-msg", "✅ Connected! Local data pushed to Gist.", "ok");
+    }
+    renderHint();
+    render();
+    setTimeout(() => { document.getElementById("setup-panel").style.display = "none"; }, 2000);
+  } catch(e) {
+    showMsg("setup-msg", "❌ Failed: " + e.message, "err");
+  }
+}
+
+function renderHint() {
+  const el = document.getElementById("main-hint");
+  if (!el) return;
+  if (gistConfig) {
+    el.innerHTML = `<div class="hint">☁️ Gist sync active — data auto-saves to your GitHub Gist every few seconds. Use <strong>Sync Now</strong> to force-push immediately. <button class="setup-toggle" onclick="toggleSetup()">Change settings</button></div>`;
+  } else {
+    el.innerHTML = `<div class="hint-warn">⚠️ No Gist configured — data is only saved in this browser. Click <strong>⚙️ Gist Settings</strong> above to set up cloud sync.</div>`;
+  }
+}
+
+function render() {
+  saveLocal();
+  renderTabs();
+  if (state.activeTab === "checklist") renderChecklist();
+  else if (state.activeTab === "timeline") renderTimeline();
+  else renderOverview();
+}
+
+// Tabs
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.activeTab = btn.dataset.tab;
+    render();
+  });
+});
+
+function renderTabs() {
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === state.activeTab));
+  ["checklist","timeline","overview"].forEach(t => {
+    document.getElementById(t + "-tab").style.display = state.activeTab === t ? "block" : "none";
+  });
+}
+
+function pct(p) { return p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length / p.tasks.length * 100) : 0; }
+
+// CHECKLIST
+function renderChecklist() {
+  const el = document.getElementById("checklist-tab");
+  const proj = state.projects[state.selectedProject] || state.projects[0];
+  if (!proj) { el.innerHTML = '<p style="color:#999;text-align:center;padding:40px">No projects yet. Add one!</p>'; return; }
+
+  let html = '<div class="pills">';
+  state.projects.forEach((p, i) => {
+    const active = state.selectedProject === i;
+    html += `<button class="pill ${active?'active':''}" style="border-color:${p.color};color:${active?'#fff':p.color};background:${active?p.color:'#fff'}" onclick="selectProj(${i})">${esc(p.name)}</button>`;
+  });
+  html += `<button class="pill-add" onclick="addProj()">+ Add Project</button></div>`;
+
+  html += `<input class="proj-name" style="border-bottom-color:${proj.color}" value="${esc(proj.name)}" onchange="renameProj(this.value)" />`;
+
+  html += `<div class="notes-label">📝 Notes</div>`;
+  html += `<textarea class="notes-area" placeholder="Add notes for this project..." onchange="editNotes(this.value)">${esc(proj.notes || "")}</textarea>`;
+
+  const totalH = proj.tasks.reduce((s, t) => s + (parseFloat(t.hours) || 0), 0);
+  const doneH = proj.tasks.filter(t => t.done).reduce((s, t) => s + (parseFloat(t.hours) || 0), 0);
+  const remainH = totalH - doneH;
+  if (totalH > 0) {
+    html += `<div class="hours-summary">`;
+    html += `<span class="hours-tag">⏱ Total: <strong>${fmtH(totalH)}</strong></span>`;
+    html += `<span class="hours-tag" style="background:#E6F4EA">✅ Done: <strong>${fmtH(doneH)}</strong></span>`;
+    html += `<span class="hours-tag" style="background:#FEF7E0">🔶 Remaining: <strong>${fmtH(remainH)}</strong></span>`;
+    html += `</div>`;
+  }
+
+  const done = proj.tasks.filter(t=>t.done).length;
+  const p = pct(proj);
+  html += `<div style="margin-top:12px"><div class="progress-info"><span>${done}/${proj.tasks.length} tasks done</span><span>${p}%</span></div>`;
+  html += `<div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${proj.color}"></div></div></div>`;
+
+  proj.tasks.forEach((t, i) => {
+    html += `<div class="task-row ${t.done?'done':''}" style="border-left-color:${proj.color}">`;
+    html += `<input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="toggleTask(${i})" style="accent-color:${proj.color}">`;
+    html += `<input class="task-text ${t.done?'done':''}" value="${esc(t.text)}" onchange="editTask(${i},'text',this.value)">`;
+    html += `<input type="date" class="task-date" value="${t.deadline}" onchange="editTask(${i},'deadline',this.value)">`;
+    html += `<input type="number" class="task-hours" placeholder="hrs" min="0" step="0.5" value="${t.hours || ''}" onchange="editTask(${i},'hours',this.value)">`;
+    html += `<button class="task-del" onclick="delTask(${i})">✕</button></div>`;
+  });
+
+  html += `<button class="add-task" onclick="addTask()">+ Add Task</button>`;
+  html += `<div style="display:flex;gap:0;flex-wrap:wrap">`;
+  html += `<button class="del-proj" onclick="delProj()">🗑 Delete this project</button>`;
+  html += `<button class="archive-btn" onclick="archiveProj()">📦 Archive this project</button>`;
+  html += `</div>`;
+
+  if (!state.archived) state.archived = [];
+  if (state.archived.length > 0) {
+    const collapsed = state.archivedCollapsed !== false;
+    html += `<div class="archived-section">`;
+    html += `<div class="archived-section-header" onclick="toggleArchivedCollapse()">`;
+    html += `<span>${collapsed ? '▶' : '▼'}</span>`;
+    html += `<span>📦 Archived Projects (${state.archived.length})</span></div>`;
+    if (!collapsed) {
+      html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">`;
+      state.archived.forEach((p, i) => {
+        const pc = p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length / p.tasks.length * 100) : 0;
+        html += `<div class="archived-pill" style="border-color:${p.color}">`;
+        html += `<span style="color:${p.color};font-weight:600">${esc(p.name)}</span>`;
+        html += `<span style="color:#bbb;font-size:11px">${pc}%</span>`;
+        html += `<button class="unarchive-btn" title="Unarchive" onclick="unarchiveProj(${i})">↩ restore</button>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function selectProj(i) { state.selectedProject = i; render(); }
+function addProj() {
+  const id = Math.max(...state.projects.map(p=>p.id), 0) + 1;
+  state.projects.push({ id, name: "New Project", color: COLORS[id % COLORS.length], tasks: [{ text: "Task 1", done: false, deadline: "" }] });
+  state.selectedProject = state.projects.length - 1;
+  render(); save();
+}
+function renameProj(v) { state.projects[state.selectedProject].name = v; save(); }
+function toggleTask(i) { const p = state.projects[state.selectedProject]; p.tasks[i].done = !p.tasks[i].done; render(); save(); }
+function editTask(i, f, v) { state.projects[state.selectedProject].tasks[i][f] = v; save(); }
+function addTask() { state.projects[state.selectedProject].tasks.push({ text: "New task", done: false, deadline: "" }); render(); save(); }
+function delTask(i) { state.projects[state.selectedProject].tasks.splice(i, 1); render(); save(); }
+function editNotes(v) { state.projects[state.selectedProject].notes = v; save(); }
+function delProj() {
+  if (!confirm("Delete this project and all its tasks?")) return;
+  state.projects.splice(state.selectedProject, 1);
+  state.selectedProject = Math.max(0, state.selectedProject - 1);
+  render(); save();
+}
+function archiveProj() {
+  const proj = state.projects[state.selectedProject];
+  if (!proj) return;
+  if (!state.archived) state.archived = [];
+  state.archived.push(proj);
+  state.projects.splice(state.selectedProject, 1);
+  state.selectedProject = Math.max(0, state.selectedProject - 1);
+  state.archivedCollapsed = false;
+  render(); save();
+}
+function unarchiveProj(i) {
+  if (!state.archived) return;
+  const proj = state.archived.splice(i, 1)[0];
+  state.projects.push(proj);
+  state.selectedProject = state.projects.length - 1;
+  render(); save();
+}
+function toggleArchivedCollapse() {
+  state.archivedCollapsed = state.archivedCollapsed === false ? true : false;
+  render();
+}
+
+// TIMELINE
+function renderTimeline() {
+  const el = document.getElementById("timeline-tab");
+  const all = [];
+  state.projects.forEach(p => p.tasks.forEach(t => { if (t.deadline) all.push({ ...t, projectName: p.name, color: p.color }); }));
+  all.sort((a, b) => a.deadline.localeCompare(b.deadline));
+
+  const overdue = all.filter(t => !t.done && t.deadline < TODAY);
+  const upcoming = all.filter(t => !t.done && t.deadline >= TODAY);
+  const completed = all.filter(t => t.done);
+
+  let html = '<div class="summary-cards">';
+  [{l:"Total deadlines",v:all.length,bg:"#E8F0FE",c:"#1a73e8"},{l:"Overdue",v:overdue.length,bg:overdue.length?"#FCE8E6":"#E8F0FE",c:overdue.length?"#D93025":"#1a73e8"},{l:"Upcoming",v:upcoming.length,bg:"#FEF7E0",c:"#E37400"},{l:"Completed",v:completed.length,bg:"#E6F4EA",c:"#1E8E3E"}].forEach(c => {
+    html += `<div class="s-card" style="background:${c.bg}"><div class="s-card-val" style="color:${c.c}">${c.v}</div><div class="s-card-label">${c.l}</div></div>`;
+  });
+  html += '</div>';
+
+  if (!all.length) { html += '<p style="color:#999;text-align:center;padding:40px">No deadlines set yet. Add deadlines in the Checklists tab!</p>'; el.innerHTML = html; return; }
+
+  html += '<div style="font-size:12px;color:#888;margin-bottom:12px">All deadlines across all projects, sorted by date</div>';
+
+  const grouped = {};
+  all.forEach(t => {
+    const d = new Date(t.deadline + "T00:00:00");
+    const key = d.toLocaleString("en", { month: "long" }) + " " + d.getFullYear();
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(t);
+  });
+
+  Object.entries(grouped).forEach(([month, tasks]) => {
+    html += `<div class="month-header">${month}</div>`;
+    tasks.forEach(t => {
+      const d = new Date(t.deadline + "T00:00:00");
+      const dayStr = d.toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" });
+      const daysAway = Math.round((d - new Date(TODAY)) / 86400000);
+      const isOv = !t.done && t.deadline < TODAY;
+      let badge, badgeBg, badgeC;
+      if (t.done) { badge = "DONE"; badgeBg = "#E6F4EA"; badgeC = "#1E8E3E"; }
+      else if (isOv) { badge = "OVERDUE"; badgeBg = "#FCE8E6"; badgeC = "#D93025"; }
+      else if (daysAway === 0) { badge = "TODAY"; badgeBg = "#FEF7E0"; badgeC = "#E37400"; }
+      else if (daysAway <= 7) { badge = daysAway + "d left"; badgeBg = "#FEF7E0"; badgeC = "#E37400"; }
+      else if (daysAway <= 30) { badge = Math.ceil(daysAway/7) + "w left"; badgeBg = "#f0f0f0"; badgeC = "#888"; }
+      else { badge = Math.round(daysAway/30) + "mo left"; badgeBg = "#f0f0f0"; badgeC = "#888"; }
+
+      const bg = t.done ? "#f8f9fa" : isOv ? "#FFF0EE" : "#fff";
+      const op = t.done ? "0.6" : "1";
+      html += `<div class="tl-row" style="border-left-color:${t.color};background:${bg};opacity:${op}">`;
+      html += `<div class="tl-date">${dayStr}</div><div style="flex:1">`;
+      html += `<div class="tl-task" style="${t.done?'text-decoration:line-through;color:#999':''}">${esc(t.text)}</div>`;
+      html += `<div class="tl-proj">${esc(t.projectName)}</div></div>`;
+      html += `<div class="tl-badge" style="background:${badgeBg};color:${badgeC}">${badge}</div></div>`;
+    });
+    html += '<div style="margin-bottom:20px"></div>';
+  });
+
+  el.innerHTML = html;
+}
+
+// OVERVIEW
+function renderOverview() {
+  const el = document.getElementById("overview-tab");
+  if (!state.projects.length && !(state.archived && state.archived.length)) { el.innerHTML = '<p style="color:#999;text-align:center;padding:40px">No projects yet.</p>'; return; }
+  let html = '';
+  state.projects.forEach(p => {
+    const pc = pct(p);
+    const upcoming = p.tasks.filter(t => t.deadline && !t.done).sort((a,b) => a.deadline.localeCompare(b.deadline));
+    html += `<div class="ov-card" style="border-left-color:${p.color}">`;
+    html += `<div class="ov-header"><div class="ov-title">${esc(p.name)}</div><div class="ov-pct" style="color:${p.color}">${pc}%</div></div>`;
+    html += `<div class="ov-bar"><div class="ov-fill" style="width:${pc}%;background:${p.color}"></div></div>`;
+    html += `<div class="ov-info">${p.tasks.filter(t=>t.done).length}/${p.tasks.length} tasks complete`;
+    const totalH = p.tasks.reduce((s,t) => s + (parseFloat(t.hours)||0), 0);
+    const doneH = p.tasks.filter(t=>t.done).reduce((s,t) => s + (parseFloat(t.hours)||0), 0);
+    if (totalH > 0) html += ` • ⏱ ${fmtH(doneH)} / ${fmtH(totalH)} hours`;
+    if (upcoming.length) html += ` • Next: <strong>${esc(upcoming[0].text)}</strong> (${upcoming[0].deadline})`;
+    html += `</div></div>`;
+  });
+
+  if (state.archived && state.archived.length > 0) {
+    const collapsed = state.archivedCollapsed !== false;
+    html += `<div class="archived-section">`;
+    html += `<div class="archived-section-header" onclick="toggleArchivedCollapse()" style="margin-bottom:8px">`;
+    html += `<span>${collapsed ? '▶' : '▼'}</span>`;
+    html += `<span>📦 Archived Projects (${state.archived.length})</span></div>`;
+    if (!collapsed) {
+      state.archived.forEach((p, i) => {
+        const pc = p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length / p.tasks.length * 100) : 0;
+        html += `<div class="archived-ov-card" style="border-left-color:${p.color}">`;
+        html += `<div><div class="archived-ov-title">📦 ${esc(p.name)}</div>`;
+        html += `<div style="font-size:12px;color:#aaa;margin-top:2px">${p.tasks.filter(t=>t.done).length}/${p.tasks.length} tasks · ${pc}% complete</div></div>`;
+        html += `<button style="font-size:12px;color:#aaa;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer" onmouseover="this.style.color='#1a73e8'" onmouseout="this.style.color='#aaa'" onclick="unarchiveProj(${i})">↩ Restore</button>`;
+        html += `</div>`;
+      });
+    }
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function fmtH(h) { return h % 1 === 0 ? h + "h" : h.toFixed(1) + "h"; }
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = "sync-msg show " + (type || "ok");
+  setTimeout(() => el.classList.remove("show"), 4000);
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `planner-backup-${TODAY}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showMsg("sync-msg", "✅ Local backup saved!", "ok");
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.projects) {
+        state = data;
+        saveLocal();
+        render();
+        showMsg("sync-msg", "✅ Backup loaded!", "ok");
+      } else {
+        showMsg("sync-msg", "❌ Invalid backup file", "err");
+      }
+    } catch(err) {
+      showMsg("sync-msg", "❌ Could not read file", "err");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+}
+
+// Init: load from Gist on first open, then render
+async function init() {
+  renderHint();
+  if (gistConfig) {
+    updateSyncStatus("syncing");
+    await loadFromGist();
+  }
+  render();
+  if (gistConfig) updateSyncStatus("ok");
+}
+
+init();
+</script>
+</body>
+</html>

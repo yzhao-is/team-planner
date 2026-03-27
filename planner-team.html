@@ -278,13 +278,10 @@ async function loadFromGist() {
     if (!file) return false;
     const remote = JSON.parse(file.content);
     if (remote?.projects) {
-      // Preserve local UI state, only update data
-      state = {
-        ...remote,
-        selectedProject: state.selectedProject,
-        activeTab: state.activeTab,
-        archivedCollapsed: state.archivedCollapsed
-      };
+      // Merge: take all data from remote, keep local UI state
+      state.projects = remote.projects;
+      state.members = remote.members || state.members;
+      state.archived = remote.archived || [];
       saveLocal();
       updateSyncStatus("ok");
       return true;

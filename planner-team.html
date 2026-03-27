@@ -241,18 +241,20 @@ async function syncToGist(showFeedback = true) {
   const btn = document.getElementById("btn-sync-now");
   if (btn) btn.disabled = true;
   try {
+    // Strip UI-only fields before saving — each device keeps its own view state
+    const { selectedProject, activeTab, archivedCollapsed, ...dataToSync } = state;
     const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
       method: "PATCH",
       headers: { "Authorization": `Bearer ${gistConfig.token}`, "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28" },
-      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) } } })
+      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(dataToSync, null, 2) } } })
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     updateSyncStatus("ok");
-    if (showFeedback) showMsg("sync-msg", "✅ Synced to Gist!", "ok");
+    if (showFeedback) showMsg("sync-msg", "✅ Saved!", "ok");
     return true;
   } catch(e) {
     updateSyncStatus("err");
-    if (showFeedback) showMsg("sync-msg", "❌ Sync failed: " + e.message, "err");
+    if (showFeedback) showMsg("sync-msg", "❌ Save failed: " + e.message, "err");
     return false;
   } finally {
     if (btn) btn.disabled = false;
@@ -276,7 +278,13 @@ async function loadFromGist() {
     if (!file) return false;
     const remote = JSON.parse(file.content);
     if (remote?.projects) {
-      state = remote;
+      // Preserve local UI state, only update data
+      state = {
+        ...remote,
+        selectedProject: state.selectedProject,
+        activeTab: state.activeTab,
+        archivedCollapsed: state.archivedCollapsed
+      };
       saveLocal();
       updateSyncStatus("ok");
       return true;

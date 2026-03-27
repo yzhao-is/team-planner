@@ -263,19 +263,18 @@ async function loadFromGist() {
   if (!gistConfig?.gistId || !gistConfig?.token) return false;
   updateSyncStatus("syncing");
   try {
-    // Step 1: get metadata (including raw_url which has commit hash = no cache)
     const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
-      headers: { "Authorization": `Bearer ${gistConfig.token}`, "X-GitHub-Api-Version": "2022-11-28" }
+      headers: {
+        "Authorization": `Bearer ${gistConfig.token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "If-None-Match": ""  // force fresh response, bypass ETag cache
+      }
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     const data = await res.json();
     const file = data.files[GIST_FILENAME];
     if (!file) return false;
-    // Step 2: always fetch from raw_url — contains commit hash, bypasses CDN cache
-    const rawRes = await fetch(file.raw_url);
-    if (!rawRes.ok) throw new Error(`Raw fetch error: ${rawRes.status}`);
-    const content = await rawRes.text();
-    const remote = JSON.parse(content);
+    const remote = JSON.parse(file.content);
     if (remote?.projects) {
       state = remote;
       saveLocal();

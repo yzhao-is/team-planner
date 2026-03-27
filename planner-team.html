@@ -272,9 +272,7 @@ async function loadFromGist() {
     const file = data.files[GIST_FILENAME];
     if (!file) return false;
     // Step 2: always fetch from raw_url — contains commit hash, bypasses CDN cache
-    const rawRes = await fetch(file.raw_url, {
-      headers: { "Authorization": `Bearer ${gistConfig.token}` }
-    });
+    const rawRes = await fetch(file.raw_url);
     if (!rawRes.ok) throw new Error(`Raw fetch error: ${rawRes.status}`);
     const content = await rawRes.text();
     const remote = JSON.parse(content);

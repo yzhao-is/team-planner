@@ -204,7 +204,16 @@ function defaultState() {
 }
 
 function loadLocalState() {
-  try { const d = localStorage.getItem(STORAGE_KEY); if (d) return JSON.parse(d); } catch(e) {}
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if (d) {
+      const s = JSON.parse(d);
+      if (!s.activeTab) s.activeTab = "checklist";
+      if (s.selectedProject === undefined) s.selectedProject = 0;
+      if (!s.archived) s.archived = [];
+      return s;
+    }
+  } catch(e) {}
   return defaultState();
 }
 function loadGistConfig() {
@@ -277,6 +286,9 @@ async function loadFromGist() {
     const remote = JSON.parse(file.content);
     if (remote?.projects) {
       state = remote;
+      if (!state.activeTab) state.activeTab = "checklist";
+      if (state.selectedProject === undefined) state.selectedProject = 0;
+      if (!state.archived) state.archived = [];
       saveLocal();
       updateSyncStatus("ok");
       return true;
@@ -636,7 +648,7 @@ function renderOverview() {
   el.innerHTML = html;
 }
 
-function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&#34;"); }
 function fmtH(h) { return h % 1 === 0 ? h + "h" : h.toFixed(1) + "h"; }
 
 function showMsg(id, text, type) {

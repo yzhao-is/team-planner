@@ -595,7 +595,7 @@ function renderOverview() {
   el.innerHTML = html;
 }
 
-function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML.replace(/"/g, "&quot;"); } 
 function fmtH(h) { return h % 1 === 0 ? h + "h" : h.toFixed(1) + "h"; }
 
 function showMsg(id, text, type) {

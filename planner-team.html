@@ -636,7 +636,7 @@ function renderOverview() {
   el.innerHTML = html;
 }
 
-function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&#34;"); }
+function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtH(h) { return h % 1 === 0 ? h + "h" : h.toFixed(1) + "h"; }
 
 function showMsg(id, text, type) {

@@ -263,21 +263,20 @@ async function loadFromGist() {
   if (!gistConfig?.gistId || !gistConfig?.token) return false;
   updateSyncStatus("syncing");
   try {
-    const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}?_=${Date.now()}`, {
+    // Step 1: get metadata (including raw_url which has commit hash = no cache)
+    const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
       headers: { "Authorization": `Bearer ${gistConfig.token}`, "X-GitHub-Api-Version": "2022-11-28" }
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     const data = await res.json();
     const file = data.files[GIST_FILENAME];
     if (!file) return false;
-    // If content is truncated, fetch from raw_url instead
-    let content = file.content;
-    if (file.truncated && file.raw_url) {
-      const rawRes = await fetch(file.raw_url + `?_=${Date.now()}`, {
-        headers: { "Authorization": `Bearer ${gistConfig.token}` }
-      });
-      content = await rawRes.text();
-    }
+    // Step 2: always fetch from raw_url — contains commit hash, bypasses CDN cache
+    const rawRes = await fetch(file.raw_url, {
+      headers: { "Authorization": `Bearer ${gistConfig.token}` }
+    });
+    if (!rawRes.ok) throw new Error(`Raw fetch error: ${rawRes.status}`);
+    const content = await rawRes.text();
     const remote = JSON.parse(content);
     if (remote?.projects) {
       state = remote;

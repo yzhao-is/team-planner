@@ -241,12 +241,10 @@ async function syncToGist(showFeedback = true) {
   const btn = document.getElementById("btn-sync-now");
   if (btn) btn.disabled = true;
   try {
-    // Strip UI-only fields before saving — each device keeps its own view state
-    const { selectedProject, activeTab, archivedCollapsed, ...dataToSync } = state;
     const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
       method: "PATCH",
       headers: { "Authorization": `Bearer ${gistConfig.token}`, "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28" },
-      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(dataToSync, null, 2) } } })
+      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) } } })
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     updateSyncStatus("ok");
@@ -269,7 +267,7 @@ async function loadFromGist() {
       headers: {
         "Authorization": `Bearer ${gistConfig.token}`,
         "X-GitHub-Api-Version": "2022-11-28",
-        "If-None-Match": ""  // force fresh response, bypass ETag cache
+        "If-None-Match": ""
       }
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
@@ -278,10 +276,7 @@ async function loadFromGist() {
     if (!file) return false;
     const remote = JSON.parse(file.content);
     if (remote?.projects) {
-      // Merge: take all data from remote, keep local UI state
-      state.projects = remote.projects;
-      state.members = remote.members || state.members;
-      state.archived = remote.archived || [];
+      state = remote;
       saveLocal();
       updateSyncStatus("ok");
       return true;
@@ -641,7 +636,7 @@ function renderOverview() {
   el.innerHTML = html;
 }
 
-function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&#34;"); }
 function fmtH(h) { return h % 1 === 0 ? h + "h" : h.toFixed(1) + "h"; }
 
 function showMsg(id, text, type) {

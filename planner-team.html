@@ -538,11 +538,27 @@ function toggleArchivedCollapse() {
   render();
 }
 
+function goToTask(projIndex, taskIndex) {
+  state.selectedProject = projIndex;
+  state.activeTab = "checklist";
+  render();
+  // Scroll to the task row after render
+  setTimeout(() => {
+    const taskRows = document.querySelectorAll(".task-row");
+    if (taskRows[taskIndex]) {
+      taskRows[taskIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+      taskRows[taskIndex].style.transition = "background 0.3s";
+      taskRows[taskIndex].style.background = "#FFF9C4";
+      setTimeout(() => { taskRows[taskIndex].style.background = ""; }, 1500);
+    }
+  }, 50);
+}
+
 // TIMELINE
 function renderTimeline() {
   const el = document.getElementById("timeline-tab");
   const all = [];
-  state.projects.forEach(p => p.tasks.forEach(t => { if (t.deadline) all.push({ ...t, projectName: p.name, color: p.color }); }));
+  state.projects.forEach((p, pi) => p.tasks.forEach((t, ti) => { if (t.deadline) all.push({ ...t, projectName: p.name, color: p.color, projIndex: pi, taskIndex: ti }); }));
   all.sort((a, b) => a.deadline.localeCompare(b.deadline));
 
   const overdue = all.filter(t => !t.done && t.deadline < TODAY);
@@ -583,12 +599,13 @@ function renderTimeline() {
       else if (daysAway<=30) { badge=Math.ceil(daysAway/7)+"w left"; badgeBg="#f0f0f0"; badgeC="#888"; }
       else { badge=Math.round(daysAway/30)+"mo left"; badgeBg="#f0f0f0"; badgeC="#888"; }
 
-      html += `<div class="tl-row" style="border-left-color:${t.color};background:${isOv?"#FFF0EE":"#fff"}">`;
+      html += `<div class="tl-row" style="border-left-color:${t.color};background:${isOv?"#FFF0EE":"#fff"};cursor:pointer" onclick="goToTask(${t.projIndex},${t.taskIndex})" title="Go to task">`;
       html += `<div class="tl-date">${dayStr}</div><div style="flex:1">`;
       html += `<div class="tl-task">${esc(t.text)}`;
       if (t.assignee) html += ` <span class="assignee-badge" style="background:${memberColor(t.assignee)}22;color:${memberColor(t.assignee)}">@${esc(t.assignee)}</span>`;
       html += `</div><div class="tl-proj">${esc(t.projectName)}</div></div>`;
-      html += `<div class="tl-badge" style="background:${badgeBg};color:${badgeC}">${badge}</div></div>`;
+      html += `<div class="tl-badge" style="background:${badgeBg};color:${badgeC}">${badge}</div>`;
+      html += `<div style="font-size:16px;color:#ccc;padding-left:4px">›</div></div>`;
     });
     html += '<div style="margin-bottom:20px"></div>';
   });

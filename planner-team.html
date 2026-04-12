@@ -7,7 +7,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f6fa; color: #333; }
-  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
   h1 { font-size: 22px; margin-bottom: 2px; }
   .subtitle { color: #666; font-size: 13px; margin-bottom: 16px; }
 
@@ -15,10 +15,29 @@
   .tab { padding: 10px 20px; border: none; background: none; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
   .tab.active { font-weight: 700; color: #1a73e8; border-bottom-color: #1a73e8; }
 
-  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .pill { padding: 6px 14px; border-radius: 20px; border: 2px solid; font-weight: 600; font-size: 13px; cursor: pointer; background: #fff; }
-  .pill.active { color: #fff !important; }
-  .pill-add { padding: 6px 14px; border-radius: 20px; border: 2px dashed #ccc; background: #fff; color: #999; cursor: pointer; font-size: 13px; }
+  /* Priority columns for projects */
+  .prio-columns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 800px) { .prio-columns { grid-template-columns: 1fr; } }
+  .prio-col { min-width: 0; }
+  .prio-header { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 8px 8px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+  .prio-header .prio-count { font-weight: 400; opacity: 0.55; font-size: 11px; text-transform: none; }
+  .prio-high .prio-header { background: #FCE8E6; color: #D93025; }
+  .prio-med .prio-header { background: #FEF7E0; color: #E37400; }
+  .prio-low .prio-header { background: #E6F4EA; color: #1E8E3E; }
+  .prio-body { background: #f8f9fa; border: 1px solid #e8e8e8; border-top: none; border-radius: 0 0 8px 8px; padding: 8px; min-height: 50px; transition: background 0.15s; }
+  .prio-body.drag-over { background: #eef3ff; border-color: #a0bfff; }
+
+  .proj-pill-card { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; border: 2px solid; margin-bottom: 6px; cursor: pointer; transition: box-shadow 0.15s, opacity 0.15s; position: relative; overflow: hidden; }
+  .proj-pill-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .proj-pill-card.active { box-shadow: 0 0 0 2px rgba(26,115,232,0.3); }
+  .proj-pill-card.dragging { opacity: 0.35; }
+  .proj-pill-drag { cursor: grab; color: #bbb; font-size: 13px; flex-shrink: 0; user-select: none; line-height: 1; }
+  .proj-pill-drag:hover { color: #888; }
+  .proj-pill-name { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proj-pill-pct { font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .proj-pill-bar { position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 6px 6px; transition: width 0.3s; }
+  .pill-add-card { display: flex; align-items: center; justify-content: center; padding: 7px 12px; border-radius: 8px; border: 2px dashed #ccc; color: #999; cursor: pointer; font-size: 12px; margin-top: 2px; }
+  .pill-add-card:hover { border-color: #aaa; color: #666; }
 
   .proj-name { font-size: 18px; font-weight: 700; border: none; border-bottom: 2px solid; outline: none; width: 100%; padding: 4px 0; background: transparent; }
 
@@ -44,7 +63,7 @@
 
   /* Members panel */
   .members-panel { background: #F8F9FF; border: 1px solid #d0d9ff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
-  .members-panel-header { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .members-panel-header { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 10px; }
   .members-list { display: flex; gap: 8px; flex-wrap: wrap; }
   .member-chip { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 16px; background: #fff; border: 1px solid #d0d9ff; font-size: 12px; }
   .member-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -120,6 +139,10 @@
   .notes-label { font-size: 13px; font-weight: 600; color: #555; margin-top: 20px; margin-bottom: 6px; }
   .notes-area { width: 100%; min-height: 80px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; outline: none; background: #fff; color: #333; line-height: 1.5; }
   .notes-area:focus { border-color: #aaa; }
+
+  /* Detail panel */
+  .detail-panel { margin-top: 4px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; padding: 20px; }
+  .detail-panel-empty { color: #aaa; text-align: center; padding: 40px 20px; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -146,7 +169,6 @@
     <span class="sync-status" id="sync-status"></span>
   </div>
 
-  <!-- Advanced: load backup, hidden by default -->
   <div id="advanced-bar" style="display:none; margin-bottom:4px;">
     <button class="sync-btn" onclick="document.getElementById('import-file').click()" style="font-size:12px;padding:5px 12px;color:#999">📂 Load Backup (advanced)</button>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
@@ -179,19 +201,25 @@
 const COLORS = ["#4285F4","#EA4335","#34A853","#FBBC04","#FF6D01","#46BDC6","#9334E6","#E91E63"];
 const MEMBER_COLORS = ["#4285F4","#EA4335","#34A853","#FBBC04","#FF6D01","#46BDC6","#9334E6","#E91E63","#00897B","#F4511E"];
 const TODAY = new Date().toISOString().slice(0, 10);
-// Different keys from personal planner so they don't clash
 const STORAGE_KEY = "planner_team_data";
-const CONFIG_KEY = "planner_gist_config"; // same config = same gist + token
-const GIST_FILENAME = "planner-team-data.json"; // different file in the gist
+const CONFIG_KEY = "planner_gist_config";
+const GIST_FILENAME = "planner-team-data.json";
+
+const PRIO_LEVELS = [
+  { key: "high", label: "🔴 High Priority", cls: "prio-high" },
+  { key: "medium", label: "🟡 Medium", cls: "prio-med" },
+  { key: "low", label: "🟢 Low Priority", cls: "prio-low" },
+];
 
 let state = loadLocalState();
 let gistConfig = loadGistConfig();
 let syncTimer = null;
+let dragProjIndex = null;
 
 function defaultState() {
   return {
     projects: [
-      { id: 1, name: "Project 1", color: COLORS[0], tasks: [
+      { id: 1, name: "Project 1", color: COLORS[0], priority: "medium", tasks: [
         { text: "Task 1", done: false, deadline: "", assignee: "", hours: "" },
       ]},
     ],
@@ -203,16 +231,20 @@ function defaultState() {
   };
 }
 
+/* Backward-compat migration: adds priority:"medium" to any project that lacks it */
+function migrate(s) {
+  if (!s.activeTab) s.activeTab = "checklist";
+  if (s.selectedProject === undefined) s.selectedProject = 0;
+  if (!s.archived) s.archived = [];
+  s.projects.forEach(p => { if (!p.priority) p.priority = "medium"; });
+  if (s.archived) s.archived.forEach(p => { if (!p.priority) p.priority = "medium"; });
+  return s;
+}
+
 function loadLocalState() {
   try {
     const d = localStorage.getItem(STORAGE_KEY);
-    if (d) {
-      const s = JSON.parse(d);
-      if (!s.activeTab) s.activeTab = "checklist";
-      if (s.selectedProject === undefined) s.selectedProject = 0;
-      if (!s.archived) s.archived = [];
-      return s;
-    }
+    if (d) return migrate(JSON.parse(d));
   } catch(e) {}
   return defaultState();
 }
@@ -273,11 +305,7 @@ async function loadFromGist() {
   updateSyncStatus("syncing");
   try {
     const res = await fetch(`https://api.github.com/gists/${gistConfig.gistId}`, {
-      headers: {
-        "Authorization": `Bearer ${gistConfig.token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        "If-None-Match": ""
-      }
+      headers: { "Authorization": `Bearer ${gistConfig.token}`, "X-GitHub-Api-Version": "2022-11-28", "If-None-Match": "" }
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     const data = await res.json();
@@ -285,10 +313,7 @@ async function loadFromGist() {
     if (!file) return false;
     const remote = JSON.parse(file.content);
     if (remote?.projects) {
-      state = remote;
-      if (!state.activeTab) state.activeTab = "checklist";
-      if (state.selectedProject === undefined) state.selectedProject = 0;
-      if (!state.archived) state.archived = [];
+      state = migrate(remote);
       saveLocal();
       updateSyncStatus("ok");
       return true;
@@ -319,7 +344,6 @@ function toggleSetup() {
     document.getElementById("inp-token").value = gistConfig.token || "";
   }
 }
-
 function toggleAdvanced() {
   const bar = document.getElementById("advanced-bar");
   bar.style.display = bar.style.display === "none" ? "block" : "none";
@@ -383,25 +407,86 @@ function memberColor(name) {
   return MEMBER_COLORS[(idx >= 0 ? idx : name.charCodeAt(0)) % MEMBER_COLORS.length];
 }
 
-// CHECKLIST
+/* ── Drag & drop: projects between priority columns ── */
+function onProjDragStart(e, projIndex) {
+  dragProjIndex = projIndex;
+  e.dataTransfer.effectAllowed = "move";
+  // Use a timeout so the dragging class applies after the drag image is captured
+  requestAnimationFrame(() => e.target.closest(".proj-pill-card").classList.add("dragging"));
+}
+function onProjDragEnd(e) {
+  const card = e.target.closest(".proj-pill-card");
+  if (card) card.classList.remove("dragging");
+  document.querySelectorAll(".prio-body").forEach(el => el.classList.remove("drag-over"));
+  dragProjIndex = null;
+}
+function onPrioDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  e.currentTarget.classList.add("drag-over");
+}
+function onPrioDragLeave(e) {
+  e.currentTarget.classList.remove("drag-over");
+}
+function onPrioDrop(e, toPrio) {
+  e.preventDefault();
+  e.currentTarget.classList.remove("drag-over");
+  if (dragProjIndex === null) return;
+  const proj = state.projects[dragProjIndex];
+  if (proj && proj.priority !== toPrio) {
+    proj.priority = toPrio;
+    render(); save();
+  }
+  dragProjIndex = null;
+}
+
+/* ── CHECKLIST VIEW ── */
 function renderChecklist() {
   const el = document.getElementById("checklist-tab");
-  const proj = state.projects[state.selectedProject] || state.projects[0];
-  if (!proj) { el.innerHTML = '<p style="color:#999;text-align:center;padding:40px">No projects yet. Add one!</p>'; return; }
+  const proj = state.projects[state.selectedProject];
 
-  let html = '<div class="pills">';
-  state.projects.forEach((p, i) => {
-    const active = state.selectedProject === i;
-    html += `<button class="pill ${active?'active':''}" style="border-color:${p.color};color:${active?'#fff':p.color};background:${active?p.color:'#fff'}" onclick="selectProj(${i})">${esc(p.name)}</button>`;
+  /* 3-column project selector */
+  let html = '<div class="prio-columns">';
+  PRIO_LEVELS.forEach(prio => {
+    const projsInCol = [];
+    state.projects.forEach((p, i) => {
+      if ((p.priority || "medium") === prio.key) projsInCol.push({ proj: p, idx: i });
+    });
+
+    html += `<div class="prio-col ${prio.cls}">`;
+    html += `<div class="prio-header"><span>${prio.label}</span><span class="prio-count">(${projsInCol.length})</span></div>`;
+    html += `<div class="prio-body" ondragover="onPrioDragOver(event)" ondragleave="onPrioDragLeave(event)" ondrop="onPrioDrop(event,'${prio.key}')">`;
+
+    projsInCol.forEach(({ proj: p, idx: i }) => {
+      const pc = pct(p);
+      const isActive = state.selectedProject === i;
+      html += `<div class="proj-pill-card ${isActive?'active':''}" style="border-color:${p.color};${isActive?'background:'+p.color+'0D':''}" draggable="true" ondragstart="onProjDragStart(event,${i})" ondragend="onProjDragEnd(event)" onclick="selectProj(${i})">`;
+      html += `<span class="proj-pill-drag" title="Drag to change priority">⠿</span>`;
+      html += `<span class="proj-pill-name" style="color:${isActive?p.color:'#333'}">${esc(p.name)}</span>`;
+      html += `<span class="proj-pill-pct" style="color:${p.color}">${pc}%</span>`;
+      html += `<div class="proj-pill-bar" style="width:${pc}%;background:${p.color}"></div>`;
+      html += `</div>`;
+    });
+
+    html += `<div class="pill-add-card" onclick="addProj('${prio.key}')">+ Add Project</div>`;
+    html += `</div></div>`; // close prio-body & prio-col
   });
-  html += `<button class="pill-add" onclick="addProj()">+ Add Project</button></div>`;
+  html += '</div>'; // close prio-columns
 
+  /* Detail panel for selected project */
+  if (!proj) {
+    html += '<div class="detail-panel"><div class="detail-panel-empty">Select or create a project above to see its tasks.</div></div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  html += '<div class="detail-panel">';
   html += `<input class="proj-name" style="border-bottom-color:${proj.color}" value="${esc(proj.name)}" onchange="renameProj(this.value)" />`;
 
-  // Members panel
+  /* Members panel */
   const members = state.members || [];
-  html += `<div class="members-panel">`;
-  html += `<div class="members-panel-header"><span>👤 Team Members</span></div>`;
+  html += `<div class="members-panel" style="margin-top:14px">`;
+  html += `<div class="members-panel-header">👤 Team Members</div>`;
   html += `<div class="members-list">`;
   members.forEach((m, i) => {
     html += `<div class="member-chip"><div class="member-color" style="background:${memberColor(m)}"></div><span>${esc(m)}</span><button class="member-del" onclick="delMember(${i})">✕</button></div>`;
@@ -410,11 +495,11 @@ function renderChecklist() {
   html += `<div class="member-add-row"><input class="member-input" id="new-member-input" placeholder="Add member name..." onkeydown="if(event.key==='Enter')addMember()"><button class="member-add-btn" onclick="addMember()">+ Add</button></div>`;
   html += `</div>`;
 
-  // Notes
+  /* Notes */
   html += `<div class="notes-label">📝 Notes</div>`;
   html += `<textarea class="notes-area" placeholder="Add notes for this project..." onchange="editNotes(this.value)">${esc(proj.notes || "")}</textarea>`;
 
-  // Hours summary
+  /* Hours summary */
   const totalH = proj.tasks.reduce((s, t) => s + (parseFloat(t.hours) || 0), 0);
   const doneH = proj.tasks.filter(t => t.done).reduce((s, t) => s + (parseFloat(t.hours) || 0), 0);
   if (totalH > 0) {
@@ -422,7 +507,6 @@ function renderChecklist() {
     html += `<span class="hours-tag">⏱ Total: <strong>${fmtH(totalH)}</strong></span>`;
     html += `<span class="hours-tag" style="background:#E6F4EA">✅ Done: <strong>${fmtH(doneH)}</strong></span>`;
     html += `<span class="hours-tag" style="background:#FEF7E0">🔶 Remaining: <strong>${fmtH(totalH - doneH)}</strong></span>`;
-    // Per-member breakdown
     members.forEach(m => {
       const mH = proj.tasks.filter(t => t.assignee === m).reduce((s,t) => s+(parseFloat(t.hours)||0),0);
       if (mH > 0) html += `<span class="hours-tag" style="background:#fff;border:1px solid #e0e0e0"><span style="color:${memberColor(m)}">●</span> ${esc(m)}: <strong>${fmtH(mH)}</strong></span>`;
@@ -430,12 +514,13 @@ function renderChecklist() {
     html += `</div>`;
   }
 
+  /* Progress bar */
   const done = proj.tasks.filter(t=>t.done).length;
   const p = pct(proj);
   html += `<div style="margin-top:12px"><div class="progress-info"><span>${done}/${proj.tasks.length} tasks done</span><span>${p}%</span></div>`;
   html += `<div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${proj.color}"></div></div></div>`;
 
-  // Column headers
+  /* Column headers */
   html += `<div style="display:flex;align-items:center;gap:8px;padding:0 12px;margin-bottom:4px;font-size:11px;color:#aaa;font-weight:600">`;
   html += `<div style="width:18px;flex-shrink:0"></div>`;
   html += `<div style="flex:1">TASK</div>`;
@@ -445,38 +530,36 @@ function renderChecklist() {
   html += `<div style="width:24px"></div>`;
   html += `</div>`;
 
+  /* Task rows */
   proj.tasks.forEach((t, i) => {
     const aColor = memberColor(t.assignee);
-    html += `<div class="task-row ${t.done?'done':''}" style="border-left-color:${proj.color}">`;
+    html += `<div class="task-row ${t.done?'done':''}" style="border-left-color:${proj.color}" data-task-idx="${i}">`;
     html += `<input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="toggleTask(${i})" style="accent-color:${proj.color}">`;
     html += `<input class="task-text ${t.done?'done':''}" value="${esc(t.text)}" onchange="editTask(${i},'text',this.value)">`;
     html += `<input type="date" class="task-date" value="${t.deadline||''}" onchange="editTask(${i},'deadline',this.value)">`;
-    // Assignee: datalist for autocomplete from members list
     html += `<input class="task-assignee" list="members-list-dl" placeholder="—" value="${esc(t.assignee||'')}" onchange="editTask(${i},'assignee',this.value)" style="border-color:${t.assignee ? aColor : '#e0e0e0'};color:${t.assignee ? aColor : '#999'}">`;
     html += `<input type="number" class="task-hours" placeholder="hrs" min="0" step="0.5" value="${t.hours||''}" onchange="editTask(${i},'hours',this.value)">`;
     html += `<button class="task-del" onclick="delTask(${i})">✕</button></div>`;
   });
 
-  // Datalist for member autocomplete
   html += `<datalist id="members-list-dl">${members.map(m=>`<option value="${esc(m)}">`).join('')}</datalist>`;
-
   html += `<button class="add-task" onclick="addTask()">+ Add Task</button>`;
   html += `<div style="display:flex;gap:0;flex-wrap:wrap">`;
   html += `<button class="del-proj" onclick="delProj()">🗑 Delete this project</button>`;
   html += `<button class="archive-btn" onclick="archiveProj()">📦 Archive this project</button>`;
   html += `</div>`;
+  html += '</div>'; // end detail-panel
 
-  // Archived section
-  if (!state.archived) state.archived = [];
-  if (state.archived.length > 0) {
+  /* Archived */
+  if (state.archived && state.archived.length > 0) {
     const collapsed = state.archivedCollapsed !== false;
     html += `<div class="archived-section">`;
     html += `<div class="archived-section-header" onclick="toggleArchivedCollapse()"><span>${collapsed?'▶':'▼'}</span><span>📦 Archived Projects (${state.archived.length})</span></div>`;
     if (!collapsed) {
       html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">`;
-      state.archived.forEach((p, i) => {
-        const pc = p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length/p.tasks.length*100) : 0;
-        html += `<div class="archived-pill" style="border-color:${p.color}"><span style="color:${p.color};font-weight:600">${esc(p.name)}</span><span style="color:#bbb;font-size:11px">${pc}%</span><button class="unarchive-btn" onclick="unarchiveProj(${i})">↩ restore</button></div>`;
+      state.archived.forEach((ap, i) => {
+        const apc = ap.tasks.length ? Math.round(ap.tasks.filter(t=>t.done).length/ap.tasks.length*100) : 0;
+        html += `<div class="archived-pill" style="border-color:${ap.color}"><span style="color:${ap.color};font-weight:600">${esc(ap.name)}</span><span style="color:#bbb;font-size:11px">${apc}%</span><button class="unarchive-btn" onclick="unarchiveProj(${i})">↩ restore</button></div>`;
       });
       html += `</div>`;
     }
@@ -486,14 +569,16 @@ function renderChecklist() {
   el.innerHTML = html;
 }
 
+/* ── Actions ── */
 function selectProj(i) { state.selectedProject = i; render(); }
-function addProj() {
+function addProj(prio) {
+  prio = prio || "medium";
   const id = Math.max(...state.projects.map(p=>p.id), 0) + 1;
-  state.projects.push({ id, name: "New Project", color: COLORS[id % COLORS.length], tasks: [{ text: "Task 1", done: false, deadline: "", assignee: "", hours: "" }] });
+  state.projects.push({ id, name: "New Project", color: COLORS[id % COLORS.length], priority: prio, tasks: [{ text: "Task 1", done: false, deadline: "", assignee: "", hours: "" }] });
   state.selectedProject = state.projects.length - 1;
   render(); save();
 }
-function renameProj(v) { state.projects[state.selectedProject].name = v; save(); }
+function renameProj(v) { state.projects[state.selectedProject].name = v; render(); save(); }
 function toggleTask(i) { state.projects[state.selectedProject].tasks[i].done = !state.projects[state.selectedProject].tasks[i].done; render(); save(); }
 function editTask(i, f, v) { state.projects[state.selectedProject].tasks[i][f] = v; save(); }
 function addTask() { state.projects[state.selectedProject].tasks.push({ text: "New task", done: false, deadline: "", assignee: "", hours: "" }); render(); save(); }
@@ -507,10 +592,7 @@ function addMember() {
   if (!state.members.includes(name)) { state.members.push(name); save(); }
   render();
 }
-function delMember(i) {
-  state.members.splice(i, 1);
-  render(); save();
-}
+function delMember(i) { state.members.splice(i, 1); render(); save(); }
 function delProj() {
   if (!confirm("Delete this project and all its tasks?")) return;
   state.projects.splice(state.selectedProject, 1);
@@ -542,23 +624,22 @@ function goToTask(projIndex, taskIndex) {
   state.selectedProject = projIndex;
   state.activeTab = "checklist";
   render();
-  // Scroll to the task row after render
   setTimeout(() => {
-    const taskRows = document.querySelectorAll(".task-row");
-    if (taskRows[taskIndex]) {
-      taskRows[taskIndex].scrollIntoView({ behavior: "smooth", block: "center" });
-      taskRows[taskIndex].style.transition = "background 0.3s";
-      taskRows[taskIndex].style.background = "#FFF9C4";
-      setTimeout(() => { taskRows[taskIndex].style.background = ""; }, 1500);
+    const row = document.querySelector(`.task-row[data-task-idx="${taskIndex}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.style.transition = "background 0.3s";
+      row.style.background = "#FFF9C4";
+      setTimeout(() => { row.style.background = ""; }, 1500);
     }
   }, 50);
 }
 
-// TIMELINE
+/* ── TIMELINE VIEW ── */
 function renderTimeline() {
   const el = document.getElementById("timeline-tab");
   const all = [];
-  state.projects.forEach((p, pi) => p.tasks.forEach((t, ti) => { if (t.deadline) all.push({ ...t, projectName: p.name, color: p.color, projIndex: pi, taskIndex: ti }); }));
+  state.projects.forEach((p, pi) => p.tasks.forEach((t, ti) => { if (t.deadline) all.push({ ...t, projectName: p.name, color: p.color, projIndex: pi, taskIndex: ti, projPrio: p.priority }); }));
   all.sort((a, b) => a.deadline.localeCompare(b.deadline));
 
   const overdue = all.filter(t => !t.done && t.deadline < TODAY);
@@ -599,9 +680,11 @@ function renderTimeline() {
       else if (daysAway<=30) { badge=Math.ceil(daysAway/7)+"w left"; badgeBg="#f0f0f0"; badgeC="#888"; }
       else { badge=Math.round(daysAway/30)+"mo left"; badgeBg="#f0f0f0"; badgeC="#888"; }
 
+      const prioDot = t.projPrio === "high" ? "🔴" : t.projPrio === "low" ? "🟢" : "🟡";
+
       html += `<div class="tl-row" style="border-left-color:${t.color};background:${isOv?"#FFF0EE":"#fff"};cursor:pointer" onclick="goToTask(${t.projIndex},${t.taskIndex})" title="Go to task">`;
       html += `<div class="tl-date">${dayStr}</div><div style="flex:1">`;
-      html += `<div class="tl-task">${esc(t.text)}`;
+      html += `<div class="tl-task">${prioDot} ${esc(t.text)}`;
       if (t.assignee) html += ` <span class="assignee-badge" style="background:${memberColor(t.assignee)}22;color:${memberColor(t.assignee)}">@${esc(t.assignee)}</span>`;
       html += `</div><div class="tl-proj">${esc(t.projectName)}</div></div>`;
       html += `<div class="tl-badge" style="background:${badgeBg};color:${badgeC}">${badge}</div>`;
@@ -613,40 +696,49 @@ function renderTimeline() {
   el.innerHTML = html;
 }
 
-// OVERVIEW
+/* ── OVERVIEW VIEW ── */
 function renderOverview() {
   const el = document.getElementById("overview-tab");
   if (!state.projects.length && !(state.archived?.length)) { el.innerHTML = '<p style="color:#999;text-align:center;padding:40px">No projects yet.</p>'; return; }
-  const members = state.members || [];
+
   let html = '';
+  const prioColors = { high: { bg: "#FCE8E6", c: "#D93025" }, medium: { bg: "#FEF7E0", c: "#E37400" }, low: { bg: "#E6F4EA", c: "#1E8E3E" } };
 
-  state.projects.forEach(p => {
-    const pc = pct(p);
-    const upcoming = p.tasks.filter(t => t.deadline && !t.done).sort((a,b)=>a.deadline.localeCompare(b.deadline));
-    html += `<div class="ov-card" style="border-left-color:${p.color}">`;
-    html += `<div class="ov-header"><div class="ov-title">${esc(p.name)}</div><div class="ov-pct" style="color:${p.color}">${pc}%</div></div>`;
-    html += `<div class="ov-bar"><div class="ov-fill" style="width:${pc}%;background:${p.color}"></div></div>`;
-    html += `<div class="ov-info">${p.tasks.filter(t=>t.done).length}/${p.tasks.length} tasks complete`;
-    const totalH = p.tasks.reduce((s,t)=>s+(parseFloat(t.hours)||0),0);
-    const doneH = p.tasks.filter(t=>t.done).reduce((s,t)=>s+(parseFloat(t.hours)||0),0);
-    if (totalH > 0) html += ` • ⏱ ${fmtH(doneH)}/${fmtH(totalH)} hrs`;
-    if (upcoming.length) html += ` • Next: <strong>${esc(upcoming[0].text)}</strong> (${upcoming[0].deadline})`;
-    html += `</div>`;
+  PRIO_LEVELS.forEach(prio => {
+    const projs = state.projects.filter(p => (p.priority || "medium") === prio.key);
+    if (!projs.length) return;
+    const pc = prioColors[prio.key];
+    html += `<div style="margin-bottom:20px">`;
+    html += `<div style="display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px;background:${pc.bg};color:${pc.c};margin-bottom:10px">${prio.label} — ${projs.length} project${projs.length>1?'s':''}</div>`;
 
-    // Per-member task summary
-    const assignees = [...new Set(p.tasks.map(t=>t.assignee).filter(Boolean))];
-    if (assignees.length) {
-      html += `<div class="ov-members">`;
-      assignees.forEach(m => {
-        const mTasks = p.tasks.filter(t=>t.assignee===m);
-        const mDone = mTasks.filter(t=>t.done).length;
-        const mH = mTasks.reduce((s,t)=>s+(parseFloat(t.hours)||0),0);
-        html += `<div class="ov-member-row"><div class="member-color" style="background:${memberColor(m)};width:8px;height:8px;border-radius:50%"></div><strong>${esc(m)}</strong>: ${mDone}/${mTasks.length} tasks`;
-        if (mH > 0) html += ` · ${fmtH(mH)} hrs`;
-        html += `</div>`;
-      });
+    projs.forEach(p => {
+      const pcVal = pct(p);
+      const upcoming = p.tasks.filter(t => t.deadline && !t.done).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+      html += `<div class="ov-card" style="border-left-color:${p.color}">`;
+      html += `<div class="ov-header"><div class="ov-title">${esc(p.name)}</div><div class="ov-pct" style="color:${p.color}">${pcVal}%</div></div>`;
+      html += `<div class="ov-bar"><div class="ov-fill" style="width:${pcVal}%;background:${p.color}"></div></div>`;
+      html += `<div class="ov-info">${p.tasks.filter(t=>t.done).length}/${p.tasks.length} tasks complete`;
+      const totalH = p.tasks.reduce((s,t)=>s+(parseFloat(t.hours)||0),0);
+      const doneH = p.tasks.filter(t=>t.done).reduce((s,t)=>s+(parseFloat(t.hours)||0),0);
+      if (totalH > 0) html += ` • ⏱ ${fmtH(doneH)}/${fmtH(totalH)} hrs`;
+      if (upcoming.length) html += ` • Next: <strong>${esc(upcoming[0].text)}</strong> (${upcoming[0].deadline})`;
       html += `</div>`;
-    }
+
+      const assignees = [...new Set(p.tasks.map(t=>t.assignee).filter(Boolean))];
+      if (assignees.length) {
+        html += `<div class="ov-members">`;
+        assignees.forEach(m => {
+          const mTasks = p.tasks.filter(t=>t.assignee===m);
+          const mDone = mTasks.filter(t=>t.done).length;
+          const mH = mTasks.reduce((s,t)=>s+(parseFloat(t.hours)||0),0);
+          html += `<div class="ov-member-row"><div class="member-color" style="background:${memberColor(m)};width:8px;height:8px;border-radius:50%"></div><strong>${esc(m)}</strong>: ${mDone}/${mTasks.length} tasks`;
+          if (mH > 0) html += ` · ${fmtH(mH)} hrs`;
+          html += `</div>`;
+        });
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
     html += `</div>`;
   });
 
@@ -655,8 +747,8 @@ function renderOverview() {
     html += `<div class="archived-section"><div class="archived-section-header" onclick="toggleArchivedCollapse()"><span>${collapsed?'▶':'▼'}</span><span>📦 Archived (${state.archived.length})</span></div>`;
     if (!collapsed) {
       state.archived.forEach((p, i) => {
-        const pc = p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length/p.tasks.length*100) : 0;
-        html += `<div class="archived-ov-card" style="border-left-color:${p.color}"><div><div class="archived-ov-title">📦 ${esc(p.name)}</div><div style="font-size:12px;color:#aaa;margin-top:2px">${p.tasks.filter(t=>t.done).length}/${p.tasks.length} tasks · ${pc}%</div></div><button style="font-size:12px;color:#aaa;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer" onmouseover="this.style.color='#1a73e8'" onmouseout="this.style.color='#aaa'" onclick="unarchiveProj(${i})">↩ Restore</button></div>`;
+        const pcVal = p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length/p.tasks.length*100) : 0;
+        html += `<div class="archived-ov-card" style="border-left-color:${p.color}"><div><div class="archived-ov-title">📦 ${esc(p.name)}</div><div style="font-size:12px;color:#aaa;margin-top:2px">${p.tasks.filter(t=>t.done).length}/${p.tasks.length} tasks · ${pcVal}%</div></div><button style="font-size:12px;color:#aaa;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer" onmouseover="this.style.color='#1a73e8'" onmouseout="this.style.color='#aaa'" onclick="unarchiveProj(${i})">↩ Restore</button></div>`;
       });
     }
     html += `</div>`;
@@ -665,6 +757,7 @@ function renderOverview() {
   el.innerHTML = html;
 }
 
+/* ── Utilities ── */
 function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&#34;"); }
 function fmtH(h) { return h % 1 === 0 ? h + "h" : h.toFixed(1) + "h"; }
 
@@ -693,7 +786,7 @@ function importData(e) {
   reader.onload = function(ev) {
     try {
       const data = JSON.parse(ev.target.result);
-      if (data.projects) { state = data; saveLocal(); render(); showMsg("sync-msg", "✅ Backup loaded!", "ok"); }
+      if (data.projects) { state = migrate(data); saveLocal(); render(); showMsg("sync-msg", "✅ Backup loaded!", "ok"); }
       else showMsg("sync-msg", "❌ Invalid backup file", "err");
     } catch(err) { showMsg("sync-msg", "❌ Could not read file", "err"); }
   };
@@ -702,7 +795,6 @@ function importData(e) {
 }
 
 async function init() {
-  // Auto-configure from URL params: ?gist=xxx&token=yyy
   const params = new URLSearchParams(location.search);
   const urlGist = params.get("gist");
   const urlToken = params.get("token");
@@ -713,9 +805,7 @@ async function init() {
   }
 
   renderHint();
-  // Always render local state immediately so page isn't blank
   render();
-  // Then fetch from Gist and re-render with latest data
   if (gistConfig) {
     updateSyncStatus("syncing");
     const loaded = await loadFromGist();
